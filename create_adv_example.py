@@ -44,7 +44,7 @@ def load_images(folder):
     return images
 
 
-def get_patch(model, base_image, patch_corners, patch_size, iters=1000):
+def get_patch(model, base_image, patch_corners, patch_size, iters):
     # Get adversarial patch ready
     adv_patch = ch.rand((3, patch_size, patch_size)).cuda()
     adv_patch = Variable(adv_patch.clone(), requires_grad=True)
@@ -72,7 +72,7 @@ def get_patch(model, base_image, patch_corners, patch_size, iters=1000):
     y_og = model(preprocess(og_batch)).argmax(1)
     iterator = tqdm(range(iters))
 
-    for i in iterator:
+    for _ in iterator:
         optimizer.zero_grad()
 
         # Sew patch on top of original image
@@ -116,7 +116,7 @@ if __name__ == "__main__":
     model = model.cuda()
 
     # Get optimal patch, modified image
-    patch, modded, loss, distances, degrees = get_patch(model, img_original, (180, 130), 30, iters=200)
+    patch, modded, loss, distances, degrees = get_patch(model, img_original, (170, 120), 35, iters=100)
 
     # Dump information to file
     with open("logs/%s.csv" % log_num, 'w') as f:

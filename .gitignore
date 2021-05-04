@@ -1,3 +1,5 @@
 __pycache__/*
 warped_images/*
 settings.json
+logs/*.csv
+*.sh
