@@ -1,5 +1,7 @@
 from openap.traj import Generator
 import matplotlib.pyplot as plt
+import numpy as np
+
 
 def descent_trajectory(
         model_num, # Aircraft mdodel
@@ -33,6 +35,29 @@ def identify_phase_changes(segments):
     return phases
 
 
+def ready_data_for_sim(descent_traj):
+    altitude, distance = [], []
+    h, s, seg =  descent_traj['h'], descent_traj['s'], descent_traj['seg']
+    phases = identify_phase_changes(seg)
+
+    for i in range(*phases['FA']):
+        altitude.append(h[i])
+        distance.append(s[i])
+    
+    altitude = np.array(altitude)
+    distance = np.array(distance)
+
+    # Figure out where altitude was lowest, consider that touchdown
+    stop_place = np.argmin(altitude)
+    altitude = altitude[:stop_place]
+    distance = distance[:stop_place]
+
+    # Convert distance travelled to distance to airport
+    distance = np.max(distance) - distance
+    
+    return altitude, distance
+
+
 if __name__ == "__main__":
 
     plane = 'b789'  # Boeing 787-9
@@ -55,6 +80,7 @@ if __name__ == "__main__":
         # Our focus is on final approach
         for i in range(*phases['FA']):
             print(t[i], h[i], s[i], v[i], vs[i])
+            exit(0)
             TIME.append(t[i] - phases['FA'][0])
             HEIGHT.append(h[i])
     

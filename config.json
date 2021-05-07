@@ -1,0 +1,13 @@
+{
+    "strip_width" : 20,
+    "approaxh_angle": 3.5,
+    "angle_quantize": 0.1,
+    "adv_dist_multiplier": 0.25,
+    "angles_max" : [
+        [100, 0.1],
+        [150, 0.2],
+        [200, 0.3],
+        [250, 0.4],
+        [300, 0.5]
+    ]
+}

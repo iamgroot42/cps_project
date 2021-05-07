@@ -3,3 +3,5 @@ warped_images/*
 settings.json
 logs/*.csv
 *.sh
+*.png
+temp.pm
