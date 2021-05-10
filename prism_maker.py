@@ -78,7 +78,7 @@ class Quantizer:
         return self.angles[-1]
 
 
-def make_states(descent, config, prob_obj):
+def make_states(descent, config, prob_obj, quantize=5):
     H, S = ready_data_for_sim(descent)
     quantizer = Quantizer(config)
     G = nx.DiGraph()
@@ -87,7 +87,12 @@ def make_states(descent, config, prob_obj):
     G.add_node(0, deviation=0)
     parents, i = [0], 1
 
-    for t, (h, s) in tqdm(enumerate(zip(H, S)), total=len(H)):
+    # Finegrained data will lead to huge graph
+    H = H[::quantize]
+    S = S[::quantize]
+
+    iterator = tqdm(enumerate(zip(H, S)), total=len(H))
+    for t, (h, s) in iterator:
         # Compute direct distance from airport
         d_dist = (h**2 + s**2) ** 0.5
         adv_dist = config["adv_dist_multiplier"] * d_dist
@@ -106,6 +111,10 @@ def make_states(descent, config, prob_obj):
             # Add no-deviation transition
             G.add_node(i, deviation=parent_deviation)
             made_in_this_iter.append(i)
+
+            # Pilot takes control, adversary cannot do anything anymore
+            if h <= config["decision_height"]:
+                adv_prob = 0
         
             if adv_prob == 0:
                 # Add no-deviation edge
@@ -139,9 +148,7 @@ def make_states(descent, config, prob_obj):
         
         # Update set of parents
         parents = made_in_this_iter[:]
-
-        # if t == 10:
-        #     break
+        iterator.set_description("G: %d nodes" % len(G.nodes))
 
     # Parent nodes at the end must be leaf nodes
     # Check which ones of them satisfy adversary's goal
@@ -161,7 +168,7 @@ if __name__ == "__main__":
     data = read_logs("./logs")
     prob_obj = AdvSuccessProb(data)
     
-    plane = 'b789'  # Boeing 787-9
+    plane = 'b789' # Boeing 787-9
 
     descent = descent_trajectory(plane)
     config = get_config_class()
@@ -169,4 +176,3 @@ if __name__ == "__main__":
 
     # Make DTCM for Prism
     make_prism_module_file(G, picked, otherleaf, "./temp.pm")
-
